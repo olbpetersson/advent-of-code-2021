@@ -37,10 +37,19 @@ class DayThree {
     @OptIn(ExperimentalStdlibApi::class)
     fun taskTwo(): Int {
         val lines = file.readLines()
-        return doItRecursive(0, lines).toInt(2)
+        val mostCommon = doItRecursive(0, lines) { value1, value2 ->
+            value1 > value2
+        }.toInt(2)
+
+        val leastCommon = doItRecursive(0, lines) { value1, value2 ->
+            value1 <= value2
+        }.toInt(2)
+        println("mostCommon $mostCommon")
+        println("leastCommon $leastCommon")
+        return mostCommon * leastCommon
     }
 
-    private fun doItRecursive(index: Int, survivors: List<String>): String {
+    private fun doItRecursive(index: Int, survivors: List<String>, compareTo: (Int, Int) -> Boolean): String {
         return if(survivors.size ==  1) {
             survivors[0]
         } else {
@@ -52,14 +61,15 @@ class DayThree {
                 val firstBit = line[index].digitToInt()
                 mostCommonMap[firstBit]!!.add(line)
             }
-            val newSurvivors = if (mostCommonMap[0]!!.size > mostCommonMap[1]!!.size) {
+            val newSurvivors = if (compareTo(mostCommonMap[0]!!.size, mostCommonMap[1]!!.size)) {
                 mostCommonMap[0]
             } else {
                 mostCommonMap[1]
             }
-            doItRecursive(index + 1, newSurvivors!!)
+            doItRecursive(index + 1, newSurvivors!!, compareTo)
         }
     }
+
 }
 
 @ExperimentalStdlibApi
