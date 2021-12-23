@@ -15,13 +15,36 @@ class DayFour {
         }
         (5 until draws.size).forEach { index ->
             boards.forEach { board ->
-                val bingoRow = board.getUnmarkedIfBingo(draws.subList(0, index))
-                bingoRow?.let {
-                    return bingoRow.sum() * draws[index-1]
+                val currentDraws = draws.subList(0, index)
+                val hasBingo = board.hasBingo(currentDraws)
+                if (hasBingo) {
+                    val unmarked = board.getUnmarked(currentDraws)
+                    return unmarked.sum() * draws[index - 1]
                 }
             }
         }
         return 0
+    }
+
+    fun taskTwo(): Int {
+        val lines = file.readLines()
+        val draws = lines[0].split(",").map { it.toInt() }
+        val boardLines = lines - lines[0]
+        val boards = boardLines.chunked(6).map {
+            Board(it)
+        }
+        val (index, board) = findLastBoard(boards, draws, 6)
+        val unmarked = board.getUnmarked(draws.subList(0, index+1))
+        return unmarked.sum() * draws[index]
+    }
+
+    fun findLastBoard(boards: List<Board>, draws: List<Int>, drawIndex: Int): Pair<Int, Board> {
+        if (boards.size == 1) {
+            return drawIndex-1 to boards[0]
+        }
+
+        val newBoards = boards.filterNot { board -> board.hasBingo(draws.subList(0, drawIndex)) }
+        return findLastBoard(newBoards, draws, drawIndex + 1)
     }
 
     class Board(rawInput: List<String>) {
@@ -36,19 +59,21 @@ class DayFour {
             rows.map { row -> row[index] }
         }
 
-        fun getUnmarkedIfBingo(draws: List<Int>): Set<Int>? {
+        fun hasBingo(draws: List<Int>): Boolean {
             val candidates = rows + columns
             val bingoRow = candidates.find { candidate ->
                 candidate.all { element ->
                     draws.contains(element)
                 }
             }
+            return bingoRow != null
+        }
 
-            return bingoRow?.let {
-                val nonMarked = candidates.flatten()
-                    .filter { candidate -> !draws.contains(candidate) }
-                nonMarked.toSet()
-            }
+        fun getUnmarked(draws: List<Int>): Set<Int> {
+            val candidates = rows + columns
+            return candidates.flatten()
+                .filter { candidate -> !draws.contains(candidate) }
+                .toSet()
         }
     }
 
@@ -57,6 +82,6 @@ class DayFour {
 @ExperimentalStdlibApi
 fun main() {
     val dayFour = DayFour()
-    val result = dayFour.taskOne()
+    val result = dayFour.taskTwo()
     println("result is $result")
 }
