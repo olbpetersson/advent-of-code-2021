@@ -39,11 +39,12 @@ class DayFour {
     }
 
     fun findLastBoard(boards: List<Board>, draws: List<Int>, drawIndex: Int): Pair<Int, Board> {
-        if (boards.size == 1) {
+        val currentDraws = draws.subList(0, drawIndex)
+        if (boards.size == 1 && boards[0].hasBingo(currentDraws)) {
             return drawIndex-1 to boards[0]
         }
 
-        val newBoards = boards.filterNot { board -> board.hasBingo(draws.subList(0, drawIndex)) }
+        val newBoards = boards.filterNot { board -> board.hasBingo(currentDraws) }
         return findLastBoard(newBoards, draws, drawIndex + 1)
     }
 
